@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebConsole</title>
+  <script src="<%= root_path %>term.js" type="text/javascript"></script>
+  <script src="<%= root_path %>web_console.js" type="text/javascript"></script>
+  <script src="<%= root_path %>console_sessions.js" type="text/javascript"></script>
+  <link href="<%= root_path %>console_sessions.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+
+<script>
+  var config = {
+    terminal: {
+      colors: <%= WebConsole.config.style.colors.to_json %>
+    },
+
+    transport: {
+      url: {
+        input: "<%= root_path %>input/<%= @console_session.pid %>",
+        pendingOutput: "<%= root_path %>pending_output/<%= @console_session.pid %>",
+        configuration: "<%= root_path %>configuration/<%= @console_session.pid %>"
+      }
+    }
+  };
+</script>
+
+</body>
+</html>
