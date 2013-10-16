@@ -51,9 +51,10 @@ end
 After you save the `Gemfile` changes, make sure to run `bundle install` and
 restart your server for the _Web Console_ to take affect.
 
-By default, it should be available in your development environment under
-`/console`. The route is not automatically mounted in a production environment
-and we strongly encourage you to keep it that way.
+You will have to mount the console in your `routes.rb`:
+
+    mount WebConsole::RackApp => '/console' if Rails.env.development?
+
 
 Configuration
 -------------
