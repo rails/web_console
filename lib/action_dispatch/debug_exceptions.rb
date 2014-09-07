@@ -6,7 +6,7 @@ module ActionDispatch
       request = Request.new(env)
 
       if request.put? && m = env["PATH_INFO"].match(%r{/repl_sessions/(?<id>.+?)\z})
-        raw_input = request.raw_post.split('=')[1]
+        raw_input = request.raw_post.partition('=').last
         update_repl_session(m[:id], raw_input)
       elsif request.post? && m = env["PATH_INFO"].match(%r{/repl_sessions/(?<id>.+?)/trace\z})
         change_stack_trace(m[:id], request.params[:frame_id])
