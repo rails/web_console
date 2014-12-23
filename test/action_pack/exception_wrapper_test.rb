@@ -22,5 +22,18 @@ module ActionDispatch
         line_number: 9
       }], wrapper.extract_sources
     end
+
+    test '#extract_sources works with Windows paths' do
+      exc = TestError.new("c:/path/to/rails/app/controller.rb:27:in 'index':")
+
+      wrapper = ExceptionWrapper.new({}, exc)
+      wrapper.expects(:source_fragment).with('c:/path/to/rails/app/controller.rb', 27).returns('nothing')
+
+      assert_equal [{
+        code: 'nothing',
+        file: 'c:/path/to/rails/app/controller.rb',
+        line_number: 27
+      }], wrapper.extract_sources
+    end
   end
 end
