@@ -35,5 +35,18 @@ module ActionDispatch
         line_number: 27
       }], wrapper.extract_sources
     end
+
+    test '#extract_sources works broken backtrace' do
+      exc = TestError.new("invalid")
+
+      wrapper = ExceptionWrapper.new({}, exc)
+      wrapper.expects(:source_fragment).with('invalid', 0).returns('nothing')
+
+      assert_equal [{
+        code: 'nothing',
+        file: 'invalid',
+        line_number: 0
+      }], wrapper.extract_sources
+    end
   end
 end

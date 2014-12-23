@@ -24,7 +24,7 @@ module ActionDispatch
 
     def extract_sources
       exception.backtrace.map do |trace|
-        file, line = trace.match(/^(.+?):(\d+).*$/).captures
+        file, line = trace.match(/^(.+?):(\d+).*$/).try(:captures) || trace
         line_number = line.to_i
 
         {
