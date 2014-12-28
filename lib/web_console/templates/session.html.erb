@@ -296,6 +296,12 @@
             this.onEnterKey();
             ev.preventDefault();
             break;
+          case 87:
+            // Ctrl-W
+            if (! ev.ctrlKey) break;
+            this.deleteWordBeforeCurrentPosition();
+            ev.preventDefault();
+            break;
           case 80:
             // Ctrl-P
             if (! ev.ctrlKey) break;
@@ -374,6 +380,31 @@
           var before = this._input.substring(0, caretPos);
           var after = this._input.substring(this._caretPos, this._input.length);
           this.setInput(before + after, caretPos);
+        }
+      };
+      
+      /**
+       * Clears the word before the current position.
+       */
+       REPLConsole.prototype.deleteWordBeforeCurrentPosition = function() {
+        if (this._caretPos > 0) {
+          var currentChar = this._input.substring(this._caretPos, this._caretPos + 1)
+          var after = this._input.substring(this._caretPos, this._input.length);
+
+          var before = this._input.substring(0, this._caretPos);
+          var before = before.split(" ").reverse();
+          var i;
+          for(i=0; i < before.length; i++){
+            if (before[i] !== "" ) {
+              break;
+            }
+          }
+          before = before.slice(i+1).reverse();
+          before = before.join(" ");
+
+          var caretPos = before.length + 1;
+
+          this.setInput(before + " " + after, caretPos)
         }
       };
 
