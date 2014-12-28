@@ -288,6 +288,9 @@
        */
       REPLConsole.prototype.onKeyDown = function(ev) {
         switch (ev.keyCode) {
+          case 67:
+            // Ctrl-C 
+            if (! ev.ctrlKey) break;
           case 13:
             // Enter key
             this.onEnterKey();
