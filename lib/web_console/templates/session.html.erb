@@ -289,7 +289,7 @@
       REPLConsole.prototype.onKeyDown = function(ev) {
         switch (ev.keyCode) {
           case 67:
-            // Ctrl-C 
+            // Ctrl-c 
             if (! ev.ctrlKey) break;
           case 13:
             // Enter key
@@ -297,9 +297,15 @@
             ev.preventDefault();
             break;
           case 87:
-            // Ctrl-W
+            // Ctrl-w
             if (! ev.ctrlKey) break;
             this.deleteWordBeforeCurrentPosition();
+            ev.preventDefault();
+            break;
+          case 85:
+            // Ctrl-u
+            if (! ev.ctrlKey) break;
+            this.deleteLineBeforeCurrentPosition();
             ev.preventDefault();
             break;
           case 80:
@@ -388,7 +394,6 @@
        */
        REPLConsole.prototype.deleteWordBeforeCurrentPosition = function() {
         if (this._caretPos > 0) {
-          var currentChar = this._input.substring(this._caretPos, this._caretPos + 1)
           var after = this._input.substring(this._caretPos, this._input.length);
 
           var before = this._input.substring(0, this._caretPos);
@@ -405,6 +410,19 @@
           var caretPos = before.length + 1;
 
           this.setInput(before + " " + after, caretPos)
+        }
+      };
+      
+      /**
+       * Clears the line before the current position.
+       */
+       REPLConsole.prototype.deleteLineBeforeCurrentPosition = function() {
+        if (this._caretPos > 0) {
+          var after = this._input.substring(this._caretPos, this._input.length);
+          var before = ""
+          var caretPos = 0;
+
+          this.setInput(before + after, caretPos)
         }
       };
 
