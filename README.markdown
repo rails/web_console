@@ -108,10 +108,10 @@ By default, only requests coming from IPv4 and IPv6 localhosts are allowed.
 the console.
 
 You can whitelist single IP's or whole networks. Say you want to share your
-console with `192.168.0.100`. You can do this:
+console with `192.168.0.100`. You can do this on your development environment:
 
 ```ruby
-class Application < Rails::Application
+Rails.application.configure do
   config.web_console.whitelisted_ips = '192.168.0.100'
 end
 ```
