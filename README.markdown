@@ -108,7 +108,7 @@ By default, only requests coming from IPv4 and IPv6 localhosts are allowed.
 the console.
 
 You can whitelist single IP's or whole networks. Say you want to share your
-console with `192.168.0.100`. You can do this on your development environment:
+console with `192.168.0.100`. You can do this:
 
 ```ruby
 Rails.application.configure do
@@ -119,7 +119,7 @@ end
 If you want to whitelist the whole private network, you can do:
 
 ```ruby
-class Application < Rails::Application
+Rails.application.configure do
   config.web_console.whitelisted_ips = '192.168.0.0/16'
 end
 ```
@@ -138,7 +138,7 @@ messages like the following is printed in the server logs:
 If you don't wanna see this message anymore, set this option to `false`:
 
 ```ruby
-class Application < Rails::Application
+Rails.application.configure do
   config.web_console.whiny_requests = false
 end
 ```
@@ -149,7 +149,7 @@ If you wanna style the console yourself, you can place `style.css` at a
 directory pointed by `config.web_console.templates_path`:
 
 ```ruby
-class Application < Rails::Application
+Rails.application.configure do
   config.web_console.templates_path = 'app/views/web_console'
 end
 ```
