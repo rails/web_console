@@ -193,6 +193,15 @@ class Application < Rails::Application
 end
 ```
 
+### I'm getting "undefined method 'web_console'"
+
+Configuration should be set in a dedicated environment, not in the
+application.rb.
+Move your web-console configuration to the files under config/environment.
+If your are setting special environment don't forget to change your Gemfile
+accordingly.
+
+
 ## Credits
 
 * Shoutout to [Charlie Somerville] for [better_errors] and [this] code.
