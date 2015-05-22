@@ -197,7 +197,7 @@ end
 
 Configuration should be set in a dedicated environment, not in the
 application.rb.
-Move your web-console configuration to the files under config/environment.
+Move your web-console configuration to config/environments/development.rb.
 If your are setting special environment don't forget to change your Gemfile
 accordingly.
 
