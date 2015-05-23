@@ -193,11 +193,10 @@ class Application < Rails::Application
 end
 ```
 
-### I'm getting "undefined method 'web_console'"
+### Why I'm getting an undefined method `web_console` during boot?
 
-Configuration should be set in a dedicated environment, not in the
-application.rb.
-Move your web-console configuration to config/environments/development.rb.
+Make sure Web Console configuration lives in `config/environments/development.rb`
+and not in `config/application.rb`.
 If your are setting special environment don't forget to change your Gemfile
 accordingly.
 
