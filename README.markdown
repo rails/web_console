@@ -111,7 +111,7 @@ You can whitelist single IP's or whole networks. Say you want to share your
 console with `192.168.0.100`. You can do this:
 
 ```ruby
-class Application < Rails::Application
+Rails.application.configure do
   config.web_console.whitelisted_ips = '192.168.0.100'
 end
 ```
@@ -119,7 +119,7 @@ end
 If you want to whitelist the whole private network, you can do:
 
 ```ruby
-class Application < Rails::Application
+Rails.application.configure do
   config.web_console.whitelisted_ips = '192.168.0.0/16'
 end
 ```
@@ -138,7 +138,7 @@ messages like the following is printed in the server logs:
 If you don't wanna see this message anymore, set this option to `false`:
 
 ```ruby
-class Application < Rails::Application
+Rails.application.configure do
   config.web_console.whiny_requests = false
 end
 ```
@@ -149,7 +149,7 @@ If you wanna style the console yourself, you can place `style.css` at a
 directory pointed by `config.web_console.templates_path`:
 
 ```ruby
-class Application < Rails::Application
+Rails.application.configure do
   config.web_console.templates_path = 'app/views/web_console'
 end
 ```
@@ -192,6 +192,14 @@ class Application < Rails::Application
   config.middleware.insert(0, Rack::Deflater)
 end
 ```
+
+### Why I'm getting an undefined method `web_console` during boot?
+
+Make sure Web Console configuration lives in `config/environments/development.rb`
+and not in `config/application.rb`.
+If your are setting special environment don't forget to change your Gemfile
+accordingly.
+
 
 ## Credits
 
