@@ -41,9 +41,7 @@ module WebConsole
         end
 
         def filter_proxies(ips)
-          ips.reject do |ip|
-            @proxies.include?(ip)
-          end
+          ips.reject(&@proxies.method(:include?))
         end
       end
   end
