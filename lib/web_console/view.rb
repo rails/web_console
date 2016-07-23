@@ -31,7 +31,7 @@ module WebConsole
     #
     # Helps to keep the Rails logs clean during errors.
     def render(*)
-      WebConsole.logger.silence { super }
+      super
     end
 
     # Override method for ActionView::Helpers::TranslationHelper#t.
