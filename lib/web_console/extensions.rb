@@ -7,11 +7,11 @@ module Kernel
   #
   # If +binding+ isn't explicitly given it will default to the binding of the
   # previous frame. E.g. the one that invoked +console+.
-  #
-  # Raises DoubleRenderError if a double +console+ invocation per request is
-  # detected.
   def console(binding = Bindex.current_bindings.second)
-    raise WebConsole::DoubleRenderError if Thread.current[:__web_console_binding]
+    if previous = Thread.current[:__web_console_binding]
+      location = "#{previous.eval('__FILE__')}:#{previous.eval('__LINE__')}".remove(Rails.root.to_s)
+      WebConsole.logger.warn "Kernel#console is already called in:\n↳ #{location}"
+    end
 
     Thread.current[:__web_console_binding] = binding
 
