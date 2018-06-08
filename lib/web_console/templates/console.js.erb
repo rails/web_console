@@ -877,7 +877,8 @@ REPLConsole.prototype.switchBindingTo = function(frameId, callback) {
   notification.className = "console-notification";
   postRequest(url, params, function() {
     notification.innerHTML = "Binding has changed to: " + callback();
-    _this.inner.appendChild(notification);
+    var lastPrompt = findLastChild(_this.inner, "console-prompt-box");
+    _this.inner.insertBefore(notification, lastPrompt);
     _this.scrollToBottom();
   });
 };
@@ -954,6 +955,14 @@ function removeClass(el, className) {
 function removeAllChildren(el) {
   while (el.firstChild) {
     el.removeChild(el.firstChild);
+  }
+}
+
+function findLastChild(el, className) {
+  for (var i = el.childNodes.length - 1; i > 0; -- i) {
+    if (hasClass(el.childNodes[i], className)) {
+      return el.childNodes[i];
+    }
   }
 }
 
