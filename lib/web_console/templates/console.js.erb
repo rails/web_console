@@ -864,19 +864,16 @@ REPLConsole.prototype.scrollToBottom = function() {
   this.outer.scrollTop = this.outer.scrollHeight;
 };
 
-/**
- * Change the binding of the console
- * Also updates a div to show that it has been changed.
- */
+// Change the binding of the console.
 REPLConsole.prototype.switchBindingTo = function(frameId, callback) {
   var url = this.getSessionUrl('trace');
   var params = "frame_id=" + encodeURIComponent(frameId);
   var notification = document.createElement('div');
-  var _this = this;
-
   notification.className = "console-notification";
+
+  var _this = this;
   postRequest(url, params, function() {
-    notification.innerHTML = "Binding has changed to: " + callback();
+    notification.innerHTML = "Context has changed to: " + callback();
     var lastPrompt = findLastChild(_this.inner, "console-prompt-box");
     _this.inner.insertBefore(notification, lastPrompt);
     _this.scrollToBottom();
