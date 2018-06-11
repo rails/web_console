@@ -319,12 +319,12 @@ REPLConsole.prototype.commandHandle = function(line, callback) {
     var response = parseJSON(xhr.responseText);
     var result   = isSuccess(xhr.status);
     if (result) {
-      self.writeOutput(response.output);
+      self.write("output", response.output);
     } else {
       if (response && response.output) {
-        self.writeError(response.output);
+        self.write("error", response.output);
       } else {
-        self.writeError(getErrorText(xhr));
+        self.write("error", getErrorText(xhr));
       }
     }
     callback(result, response);
@@ -509,7 +509,7 @@ REPLConsole.prototype.getSuggestion = function(keyword) {
 
   function request(keyword, callback) {
     self.contextRequest(keyword, function(err, res) {
-      if (err) throw new Error(err);
+      if (err) throw new ("error", err);
       var c = flatten(res['context']);
       c.sort();
       callback(c);
@@ -588,20 +588,21 @@ REPLConsole.prototype.renderInput = function() {
   center.appendChild(document.createTextNode(hint ? hint.substr(this.getCurrentWord().length) : current));
 };
 
-REPLConsole.prototype.writeOutput = function(output) {
+REPLConsole.prototype.write = function(type, output) {
   var consoleMessage = document.createElement('pre');
   consoleMessage.className = "console-message";
   consoleMessage.innerHTML = escapeHTML(output);
   this.inner.appendChild(consoleMessage);
   this.newPromptBox();
-  return consoleMessage;
-};
 
-REPLConsole.prototype.writeError = function(output) {
-  var consoleMessage = this.writeOutput(output);
-  addClass(consoleMessage, "error-message");
+  if (type === "error") {
+    addClass(consoleMessage, "error-message");
+  } else if (type === "notification") {
+    addClass(consoleMessage, "notification-message");
+  }
+
   return consoleMessage;
-};
+}
 
 REPLConsole.prototype.onEnterKey = function() {
   var input = this._input;
@@ -868,15 +869,11 @@ REPLConsole.prototype.scrollToBottom = function() {
 REPLConsole.prototype.switchBindingTo = function(frameId, callback) {
   var url = this.getSessionUrl('trace');
   var params = "frame_id=" + encodeURIComponent(frameId);
-  var notification = document.createElement('div');
-  notification.className = "console-notification";
 
   var _this = this;
   postRequest(url, params, function() {
-    notification.innerHTML = "Context has changed to: " + callback();
-    var lastPrompt = findLastChild(_this.inner, "console-prompt-box");
-    _this.inner.insertBefore(notification, lastPrompt);
-    _this.scrollToBottom();
+    var text = "Context has changed to: " + callback();
+    _this.write("notification", text);
   });
 };
 
