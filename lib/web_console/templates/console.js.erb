@@ -595,19 +595,19 @@ REPLConsole.prototype.writeOutput = function(output) {
   this.inner.appendChild(consoleMessage);
   this.newPromptBox();
   return consoleMessage;
-}
+};
 
 REPLConsole.prototype.writeError = function(output) {
   var consoleMessage = this.writeOutput(output);
   addClass(consoleMessage, "error-message");
   return consoleMessage;
-}
+};
 
 REPLConsole.prototype.writeNotification = function(output) {
   var consoleMessage = this.writeOutput(output);
   addClass(consoleMessage, "notification-message");
   return consoleMessage;
-}
+};
 
 REPLConsole.prototype.onEnterKey = function() {
   var input = this._input;
