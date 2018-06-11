@@ -509,7 +509,7 @@ REPLConsole.prototype.getSuggestion = function(keyword) {
 
   function request(keyword, callback) {
     self.contextRequest(keyword, function(err, res) {
-      if (err) throw new ("error", err);
+      if (err) throw new Error(err);
       var c = flatten(res['context']);
       c.sort();
       callback(c);
