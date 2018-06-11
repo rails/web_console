@@ -319,12 +319,12 @@ REPLConsole.prototype.commandHandle = function(line, callback) {
     var response = parseJSON(xhr.responseText);
     var result   = isSuccess(xhr.status);
     if (result) {
-      self.write("output", response.output);
+      self.writeOutput(response.output);
     } else {
       if (response && response.output) {
-        self.write("error", response.output);
+        self.writeError(response.output);
       } else {
-        self.write("error", getErrorText(xhr));
+        self.writeError(getErrorText(xhr));
       }
     }
     callback(result, response);
@@ -588,19 +588,24 @@ REPLConsole.prototype.renderInput = function() {
   center.appendChild(document.createTextNode(hint ? hint.substr(this.getCurrentWord().length) : current));
 };
 
-REPLConsole.prototype.write = function(type, output) {
+REPLConsole.prototype.writeOutput = function(output) {
   var consoleMessage = document.createElement('pre');
   consoleMessage.className = "console-message";
   consoleMessage.innerHTML = escapeHTML(output);
   this.inner.appendChild(consoleMessage);
   this.newPromptBox();
+  return consoleMessage;
+}
 
-  if (type === "error") {
-    addClass(consoleMessage, "error-message");
-  } else if (type === "notification") {
-    addClass(consoleMessage, "notification-message");
-  }
+REPLConsole.prototype.writeError = function(output) {
+  var consoleMessage = this.writeOutput(output);
+  addClass(consoleMessage, "error-message");
+  return consoleMessage;
+}
 
+REPLConsole.prototype.writeNotification = function(output) {
+  var consoleMessage = this.writeOutput(output);
+  addClass(consoleMessage, "notification-message");
   return consoleMessage;
 }
 
@@ -873,7 +878,7 @@ REPLConsole.prototype.switchBindingTo = function(frameId, callback) {
   var _this = this;
   postRequest(url, params, function() {
     var text = "Context has changed to: " + callback();
-    _this.write("notification", text);
+    _this.writeNotification(text);
   });
 };
 
