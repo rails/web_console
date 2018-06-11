@@ -957,14 +957,6 @@ function removeAllChildren(el) {
   }
 }
 
-function findLastChild(el, className) {
-  for (var i = el.childNodes.length - 1; i > 0; -- i) {
-    if (hasClass(el.childNodes[i], className)) {
-      return el.childNodes[i];
-    }
-  }
-}
-
 function findChild(el, className) {
   for (var i = 0; i < el.childNodes.length; ++ i) {
     if (hasClass(el.childNodes[i], className)) {
