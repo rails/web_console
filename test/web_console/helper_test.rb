@@ -73,12 +73,12 @@ module WebConsole
       assert_select "#console"
     end
 
-    test "raises an error when trying to spawn a console more than once" do
+    test "warns when trying to spawn a console more than once" do
       @app = Middleware.new(MultipleConsolesApplication.new)
 
-      assert_raises(DoubleRenderError) do
-        get "/", params: nil, headers: { "CONTENT_TYPE" => "text/html" }
-      end
+      WebConsole.logger.expects(:warn)
+
+      get "/", params: nil, headers: { "CONTENT_TYPE" => "text/html" }
     end
 
     test "doesn't hijack current view" do
