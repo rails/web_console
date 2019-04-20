@@ -7,12 +7,16 @@ module ActionDispatch
   class DebugExceptionsTest < ActionDispatch::IntegrationTest
     class Application
       def call(env)
-        ActionView::Base.new.render(inline: "<% @ivar = 42 %> <%= nil.raise %></h1")
+        WebConsole::View.new(ActionView::LookupContext.new([])).render(inline: <<~ERB)
+          <% @ivar = 42 %>
+          <%= nil.raise %>
+          </h1
+        ERB
       end
     end
 
     setup do
-      Request.stubs(:whitelisted_ips).returns(IPAddr.new("0.0.0.0/0"))
+      Request.stubs(:permissions).returns(IPAddr.new("0.0.0.0/0"))
 
       @app = DebugExceptions.new(Application.new)
     end

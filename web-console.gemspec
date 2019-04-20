@@ -15,9 +15,9 @@ Gem::Specification.new do |s|
 
   s.files = Dir["lib/**/*", "MIT-LICENSE", "Rakefile", "README.markdown", "CHANGELOG.markdown"]
 
-  s.required_ruby_version = ">= 2.2.2"
+  s.required_ruby_version = ">= 2.4"
 
-  rails_version = ">= 5.0"
+  rails_version = ">= 5.2"
 
   s.add_dependency "railties",    rails_version
   s.add_dependency "activemodel", rails_version

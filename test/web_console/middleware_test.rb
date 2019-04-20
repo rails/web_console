@@ -6,7 +6,7 @@ module WebConsole
   class MiddlewareTest < ActionDispatch::IntegrationTest
     class Application
       def initialize(options = {})
-        @response_content_type = options.fetch(:response_content_type, Mime[:html])
+        @response_content_type = options.fetch(:response_content_type, "text/html")
         @response_content_length = options.fetch(:response_content_length, nil)
       end
 
@@ -45,7 +45,7 @@ module WebConsole
       Thread.current[:__web_console_exception] = nil
       Thread.current[:__web_console_binding] = nil
       Rails.stubs(:root).returns Pathname(__FILE__).parent
-      Request.stubs(:whitelisted_ips).returns(IPAddr.new("0.0.0.0/0"))
+      Request.stubs(:permissions).returns(IPAddr.new("0.0.0.0/0"))
 
       Middleware.mount_point = ""
       @app = Middleware.new(Application.new)
@@ -77,7 +77,7 @@ module WebConsole
 
     test "render console if response format is HTML" do
       Thread.current[:__web_console_binding] = binding
-      @app = Middleware.new(Application.new(response_content_type: Mime[:html]))
+      @app = Middleware.new(Application.new(response_content_type: "text/html"))
 
       get "/", params: nil
 
@@ -94,7 +94,7 @@ module WebConsole
 
     test "it closes original body if rendering console" do
       Thread.current[:__web_console_binding] = binding
-      inner_app = Application.new(response_content_type: Mime[:html])
+      inner_app = Application.new(response_content_type: "text/html")
       @app = Middleware.new(inner_app)
 
       get "/", params: nil
@@ -113,7 +113,7 @@ module WebConsole
 
     test "does not render console if response format is not HTML" do
       Thread.current[:__web_console_binding] = binding
-      @app = Middleware.new(Application.new(response_content_type: Mime[:json]))
+      @app = Middleware.new(Application.new(response_content_type: "application/json"))
 
       get "/", params: nil
 
@@ -132,7 +132,7 @@ module WebConsole
 
     test "doesn't render console in non html response" do
       Thread.current[:__web_console_binding] = binding
-      @app = Middleware.new(Application.new(response_content_type: Mime[:json]))
+      @app = Middleware.new(Application.new(response_content_type: "application/json"))
 
       get "/", params: nil
 
@@ -141,7 +141,7 @@ module WebConsole
 
     test "doesn't render console from non whitelisted IP" do
       Thread.current[:__web_console_binding] = binding
-      Request.stubs(:whitelisted_ips).returns(IPAddr.new("127.0.0.1"))
+      Request.stubs(:permissions).returns(IPAddr.new("127.0.0.1"))
 
       silence(:stderr) do
         get "/", params: nil, headers: { "REMOTE_ADDR" => "1.1.1.1" }
@@ -157,18 +157,18 @@ module WebConsole
     end
 
     test "can evaluate code and return it as a JSON" do
-      session, line = Session.new([binding]), __LINE__
+      session, line = Session.new([[binding]]), __LINE__
 
       Session.stubs(:from).returns(session)
 
       get "/", params: nil
-      put "/repl_sessions/#{session.id}", xhr: true, params: { input: "__LINE__" }
+      put "/repl_sessions/#{session.id}", xhr: true, params: { input: "line" }
 
       assert_equal("=> #{line}\n", JSON.parse(response.body)["output"])
     end
 
     test "can switch bindings on error pages" do
-      session = Session.new(raise_exception.bindings)
+      session = Session.new([WebConsole::ExceptionMapper.new(raise_exception)])
 
       Session.stubs(:from).returns(session)
 
@@ -178,18 +178,35 @@ module WebConsole
       assert_equal({ ok: true }.to_json, response.body)
     end
 
+    test "can switch to the cause on error pages" do
+      nested_error = begin
+                       raise "First error"
+                     rescue
+                       raise "Second Error" rescue $!
+                     end
+
+      session = Session.new(WebConsole::ExceptionMapper.follow(nested_error))
+
+      Session.stubs(:from).returns(session)
+
+      get "/", params: nil
+      post "/repl_sessions/#{session.id}/trace", xhr: true, params: { frame_id: 1, exception_object_id: nested_error.cause.object_id }
+
+      assert_equal({ ok: true }.to_json, response.body)
+    end
+
     test "can be changed mount point" do
       Middleware.mount_point = "/customized/path"
 
-      session, line = Session.new([binding]), __LINE__
-      put "/customized/path/repl_sessions/#{session.id}", params: { input: "__LINE__" }, xhr: true
+      session, value = Session.new([[binding]]), __LINE__
+      put "/customized/path/repl_sessions/#{session.id}", params: { input: "value" }, xhr: true
 
-      assert_equal("=> #{line}\n", JSON.parse(response.body)["output"])
+      assert_equal("=> #{value}\n", JSON.parse(response.body)["output"])
     end
 
     test "can return context information by passing a context param" do
       hello = hello = "world"
-      session = Session.new([binding])
+      session = Session.new([[binding]])
       Session.stubs(:from).returns(session)
 
       get "/"
@@ -208,13 +225,6 @@ module WebConsole
       post "/repl_sessions/no_such_session/trace", xhr: true, params: { frame_id: 1 }
 
       assert_equal(404, response.status)
-    end
-
-    test "doesn't accept request for old version and return 406" do
-      put "/repl_sessions/no_such_session", xhr: true, params: { input: "__LINE__" },
-        headers: { "HTTP_ACCEPT" => "application/vnd.web-console.v0" }
-
-      assert_equal(406, response.status)
     end
 
     test "reraises application errors" do
@@ -243,23 +253,6 @@ module WebConsole
     end
 
     private
-
-      # Override the put and post testing helper of ActionDispatch to customize http headers
-      def put(http_method, path, *args)
-        update_path_args(path)
-        super
-      end
-
-      def post(http_method, path, *args)
-        update_path_args(path)
-        super
-      end
-
-      def update_path_args(path)
-        unless path[:headers]
-          path.merge!(headers: { "HTTP_ACCEPT" => Mime[:web_console_v2] })
-        end
-      end
 
       def raise_exception
         raise

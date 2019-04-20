@@ -7,8 +7,7 @@ module WebConsole
   # Rails error pages.
   class Template
     # Lets you customize the default templates folder location.
-    cattr_accessor :template_paths
-    @@template_paths = [ File.expand_path("../templates", __FILE__) ]
+    cattr_accessor :template_paths, default: [ File.expand_path("../templates", __FILE__) ]
 
     def initialize(env, session)
       @env = env
@@ -18,7 +17,7 @@ module WebConsole
 
     # Render a template (inferred from +template_paths+) as a plain string.
     def render(template)
-      view = View.new(template_paths, instance_values)
+      view = View.new(ActionView::LookupContext.new(template_paths), instance_values)
       view.render(template: template, layout: false)
     end
   end

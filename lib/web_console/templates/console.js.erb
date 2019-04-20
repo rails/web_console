@@ -603,6 +603,12 @@ REPLConsole.prototype.writeError = function(output) {
   return consoleMessage;
 };
 
+REPLConsole.prototype.writeNotification = function(output) {
+  var consoleMessage = this.writeOutput(output);
+  addClass(consoleMessage, "notification-message");
+  return consoleMessage;
+};
+
 REPLConsole.prototype.onEnterKey = function() {
   var input = this._input;
 
@@ -864,11 +870,20 @@ REPLConsole.prototype.scrollToBottom = function() {
   this.outer.scrollTop = this.outer.scrollHeight;
 };
 
-// Change the binding of the console
-REPLConsole.prototype.switchBindingTo = function(frameId, callback) {
+// Change the binding of the console.
+REPLConsole.prototype.switchBindingTo = function(frameId, exceptionObjectId, callback) {
   var url = this.getSessionUrl('trace');
   var params = "frame_id=" + encodeURIComponent(frameId);
-  postRequest(url, params, callback);
+
+  if (exceptionObjectId) {
+    params = params + "&exception_object_id=" + encodeURIComponent(exceptionObjectId);
+  }
+
+  var _this = this;
+  postRequest(url, params, function() {
+    var text = "Context has changed to: " + callback();
+    _this.writeNotification(text);
+  });
 };
 
 /**
@@ -904,7 +919,6 @@ REPLConsole.request = function request(method, url, params, callback) {
   xhr.open(method, url, true);
   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-  xhr.setRequestHeader("Accept", "<%= Mime[:web_console_v2] %>");
   xhr.send(params);
 
   xhr.onreadystatechange = function() {

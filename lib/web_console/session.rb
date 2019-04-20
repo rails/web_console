@@ -11,8 +11,7 @@ module WebConsole
   # error pages only, as currently, this is the only client that needs to do
   # that.
   class Session
-    cattr_reader :inmemory_storage
-    @@inmemory_storage = {}
+    cattr_reader :inmemory_storage, default: {}
 
     class << self
       # Finds a persisted session in memory by its id.
@@ -32,9 +31,9 @@ module WebConsole
       # storage.
       def from(storage)
         if exc = storage[:__web_console_exception]
-          new(ExceptionMapper.new(exc))
+          new(ExceptionMapper.follow(exc))
         elsif binding = storage[:__web_console_binding]
-          new([binding])
+          new([[binding]])
         end
       end
     end
@@ -42,10 +41,11 @@ module WebConsole
     # An unique identifier for every REPL.
     attr_reader :id
 
-    def initialize(bindings)
+    def initialize(exception_mappers)
       @id = SecureRandom.hex(16)
-      @bindings = bindings
-      @evaluator = Evaluator.new(@current_binding = bindings.first)
+
+      @exception_mappers = exception_mappers
+      @evaluator         = Evaluator.new(@current_binding = exception_mappers.first.first)
 
       store_into_memory
     end
@@ -60,8 +60,10 @@ module WebConsole
     # Switches the current binding to the one at specified +index+.
     #
     # Returns nothing.
-    def switch_binding_to(index)
-      @evaluator = Evaluator.new(@current_binding = @bindings[index.to_i])
+    def switch_binding_to(index, exception_object_id)
+      bindings = ExceptionMapper.find_binding(@exception_mappers, exception_object_id)
+
+      @evaluator = Evaluator.new(@current_binding = bindings[index.to_i])
     end
 
     # Returns context of the current binding

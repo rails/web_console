@@ -13,10 +13,11 @@ module WebConsole
   autoload :Injector
   autoload :Request
   autoload :WhinyRequest
-  autoload :Whitelist
+  autoload :Permissions
   autoload :Template
   autoload :Middleware
   autoload :Context
+  autoload :SourceLocation
 
   autoload_at "web_console/errors" do
     autoload :Error

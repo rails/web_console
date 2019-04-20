@@ -4,23 +4,30 @@ require "test_helper"
 
 module WebConsole
   class SessionTest < ActiveSupport::TestCase
-    class LineAwareError < StandardError
-      def self.raise
-        ::Kernel.raise new(__LINE__)
+    class ValueAwareError < StandardError
+      def self.raise(value)
+        ::Kernel.raise self, value
       rescue => exc
         exc
       end
 
-      attr_reader :line
+      def self.raise_nested_error(value)
+        ::Kernel.raise self, value
+      rescue
+        value = 1 # Override value so we can target the binding here
+        ::Kernel.raise "Second Error" rescue $!
+      end
 
-      def initialize(line)
-        @line = line
+      attr_reader :value
+
+      def initialize(value)
+        @value = value
       end
     end
 
     setup do
       Session.inmemory_storage.clear
-      @session = Session.new([binding])
+      @session = Session.new([[binding]])
     end
 
     test "returns nil when a session is not found" do
@@ -47,43 +54,54 @@ module WebConsole
         self
       end
 
-      session = Session.new([binding])
+      session = Session.new([[binding]])
       assert_equal session.eval("called?"), "=> \"yes\"\n"
     end
 
     test "#from can create session from a single binding" do
-      saved_line, saved_binding = __LINE__, binding
+      value, saved_binding = __LINE__, binding
       Thread.current[:__web_console_binding] = saved_binding
 
       session = Session.from(__web_console_binding: saved_binding)
 
-      assert_equal "=> #{saved_line}\n", session.eval("__LINE__")
+      assert_equal "=> #{value}\n", session.eval("value")
     end
 
     test "#from can create session from an exception" do
-      exc = LineAwareError.raise
+      value = __LINE__
+      exc = ValueAwareError.raise(value)
 
       session = Session.from(__web_console_exception: exc)
 
-      assert_equal "=> #{exc.line}\n", session.eval("__LINE__")
+      assert_equal "=> #{exc.value}\n", session.eval("value")
     end
 
     test "#from can switch to bindings" do
-      exc, saved_line = LineAwareError.raise, __LINE__
+      value = __LINE__
+      exc = ValueAwareError.raise(value)
 
       session = Session.from(__web_console_exception: exc)
-      session.switch_binding_to(1)
+      session.switch_binding_to(1, exc.object_id)
 
-      assert_equal "=> #{saved_line}\n", session.eval("__LINE__")
+      assert_equal "=> #{value}\n", session.eval("value")
+    end
+
+    test "#from can switch to the cause" do
+      value = __LINE__
+      exc = ValueAwareError.raise_nested_error(value)
+
+      session = Session.from(__web_console_exception: exc)
+      session.switch_binding_to(1, exc.cause.object_id)
+
+      assert_equal "=> #{value}\n", session.eval("value")
     end
 
     test "#from prioritizes exceptions over bindings" do
-      exc, saved_line = LineAwareError.raise, __LINE__
+      exc = ValueAwareError.raise(42)
 
       session = Session.from(__web_console_exception: exc, __web_console_binding: binding)
-      session.switch_binding_to(1)
 
-      assert_equal "=> #{saved_line}\n", session.eval("__LINE__")
+      assert_equal "=> WebConsole::SessionTest::ValueAwareError\n", session.eval("self")
     end
   end
 end

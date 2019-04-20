@@ -6,11 +6,8 @@ module WebConsole
   class Middleware
     TEMPLATES_PATH = File.expand_path("../templates", __FILE__)
 
-    cattr_accessor :mount_point
-    @@mount_point = "/__web_console"
-
-    cattr_accessor :whiny_requests
-    @@whiny_requests = true
+    cattr_accessor :mount_point, default: "/__web_console"
+    cattr_accessor :whiny_requests, default: true
 
     def initialize(app)
       @app = app
@@ -19,13 +16,14 @@ module WebConsole
     def call(env)
       app_exception = catch :app_exception do
         request = create_regular_or_whiny_request(env)
-        return call_app(env) unless request.from_whitelisted_ip?
+        return call_app(env) unless request.permitted?
 
         if id = id_for_repl_session_update(request)
           return update_repl_session(id, request)
         elsif id = id_for_repl_session_stack_frame_change(request)
           return change_stack_trace(id, request)
         end
+
 
         status, headers, body = call_app(env)
 
@@ -54,7 +52,7 @@ module WebConsole
     private
 
       def acceptable_content_type?(headers)
-        Mime::Type.parse(headers["Content-Type"].to_s).first == Mime[:html]
+        headers["Content-Type"].to_s.include?("html")
       end
 
       def json_response(opts = {})
@@ -66,7 +64,6 @@ module WebConsole
       end
 
       def json_response_with_session(id, request, opts = {})
-        return respond_with_unacceptable_request unless request.acceptable?
         return respond_with_unavailable_session(id) unless session = Session.find(id)
 
         json_response(opts) { yield session }
@@ -113,7 +110,7 @@ module WebConsole
 
       def change_stack_trace(id, request)
         json_response_with_session(id, request) do |session|
-          session.switch_binding_to(request.params[:frame_id])
+          session.switch_binding_to(request.params[:frame_id], request.params[:exception_object_id])
 
           { ok: true }
         end
