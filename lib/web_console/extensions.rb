@@ -8,8 +8,8 @@ module Kernel
   # If +binding+ isn't explicitly given it will default to the binding of the
   # previous frame. E.g. the one that invoked +console+.
   #
-  # Raises DoubleRenderError if a double +console+ invocation per request is
-  # detected.
+  # Raises +DoubleRenderError+ if a more than one +console+ invocation per
+  # request is detected.
   def console(binding = Bindex.current_bindings.second)
     raise WebConsole::DoubleRenderError if Thread.current[:__web_console_binding]
 
@@ -22,26 +22,13 @@ module Kernel
   end
 end
 
-module ActionDispatch
-  class DebugExceptions
-    def render_exception_with_web_console(request, exception)
-      render_exception_without_web_console(request, exception).tap do
-        backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
-        error = ExceptionWrapper.new(backtrace_cleaner, exception).exception
-
-        # Get the original exception if ExceptionWrapper decides to follow it.
-        Thread.current[:__web_console_exception] = error
-
-        # ActionView::Template::Error bypass ExceptionWrapper original
-        # exception following. The backtrace in the view is generated from
-        # reaching out to original_exception in the view.
-        if error.is_a?(ActionView::Template::Error)
-          Thread.current[:__web_console_exception] = error.cause
-        end
-      end
-    end
-
-    alias_method :render_exception_without_web_console, :render_exception
-    alias_method :render_exception, :render_exception_with_web_console
+class Binding
+  # Instructs Web Console to render a console in the current binding, without
+  # the need to unroll the stack.
+  #
+  # Raises +DoubleRenderError+ if a more than one +console+ invocation per
+  # request is detected.
+  def console
+    Kernel.console(self)
   end
 end
