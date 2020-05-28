@@ -10,7 +10,11 @@ module WebConsole
       require "bindex"
       require "web_console/extensions"
 
-      ActionDispatch::DebugExceptions.register_interceptor(Interceptor)
+      # Interceptor references ActionView::Template::Error.
+      # Defer registering it until ActionView has been loaded.
+      ActiveSupport.on_load(:action_view) do
+        ActionDispatch::DebugExceptions.register_interceptor(Interceptor)
+      end
     end
 
     initializer "web_console.development_only" do
