@@ -1,5 +1,7 @@
 language: ruby
-
+arch:
+  - amd64
+  - ppc64le
 rvm:
   - 2.5.3
   - 2.6.1
@@ -24,6 +26,18 @@ matrix:
     - rvm: jruby-head
     - rvm: jruby-9.2.0.0
     - env: TEST_SUITE=templates:test
+# ppc64le support code
+    - rvm: ruby-head
+      arch: ppc64le
+    - rvm: jruby-head
+      arch: ppc64le
+    - rvm: jruby-9.2.0.0
+      arch: ppc64le
+    - env: TEST_SUITE=templates:test
+      arch: ppc64le
   include:
     - env: TEST_SUITE=templates:test
+      rvm: 2.6.1
+    - env: TEST_SUITE=templates:test
+      arch: ppc64le
       rvm: 2.6.1
