@@ -10,7 +10,9 @@ module WebConsole
       require "bindex"
       require "web_console/extensions"
 
-      ActionDispatch::DebugExceptions.register_interceptor(Interceptor)
+      ActiveSupport.on_load(:action_dispatch_request) do
+        ActionDispatch::DebugExceptions.register_interceptor(Interceptor)
+      end
     end
 
     initializer "web_console.development_only" do
@@ -32,7 +34,9 @@ module WebConsole
     end
 
     initializer "web_console.insert_middleware" do |app|
-      app.middleware.insert_before ActionDispatch::DebugExceptions, Middleware
+      ActiveSupport.on_load(:action_dispatch_request) do
+        app.middleware.insert_before ActionDispatch::DebugExceptions, Middleware
+      end
     end
 
     initializer "web_console.mount_point" do
