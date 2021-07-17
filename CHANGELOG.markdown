@@ -2,6 +2,8 @@
 
 ## master (unreleased)
 
+* [#310](https://github.com/rails/web-console/pull/310) Use on_load callback for ActionDispatch::DebugExceptions ([@p8])
+
 ## 4.1.0
 
 * [#304](https://github.com/rails/web-console/pull/304) Add support for Rails 6.1 ([@stephannv])
